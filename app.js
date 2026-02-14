@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultSection = document.getElementById('result-section');
     const analysisStatus = document.getElementById('analysis-status');
     const analysisDetail = document.getElementById('analysis-detail');
+    const historyBtn = document.getElementById('history-btn');
+    const closeHistoryBtn = document.getElementById('close-history-btn');
+    const historyOverlay = document.getElementById('history-overlay');
+    const historyList = document.getElementById('history-list');
 
     // Mock Data for "Monstera Deliciosa"
     const mockDiagnosis = {
@@ -30,6 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
         appScreen.classList.add('active');
     });
 
+    // History Event Listeners
+    historyBtn.addEventListener('click', () => {
+        showHistory();
+    });
+
+    closeHistoryBtn.addEventListener('click', () => {
+        historyOverlay.classList.add('hidden');
+    });
+
     // File Input Handler
     fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -42,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide upload, show loader
         uploadSection.classList.add('hidden');
         analysisSection.classList.remove('hidden');
+        resultSection.classList.add('hidden'); // Ensure result is hidden
 
         const steps = [
             { msg: "사진을 분석하고 있습니다...", detail: "잎의 형태와 색상을 스캔 중" },
@@ -68,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         analysisDetail.textContent = step.detail;
         analysisStatus.style.opacity = 0;
         analysisDetail.style.opacity = 0;
-        
+
         setTimeout(() => {
             analysisStatus.style.opacity = 1;
             analysisDetail.style.opacity = 1;
@@ -78,8 +92,48 @@ document.addEventListener('DOMContentLoaded', () => {
     function showResult() {
         analysisSection.classList.add('hidden');
         resultSection.classList.remove('hidden');
+        saveToHistory(mockDiagnosis);
         renderResult(mockDiagnosis);
     }
+
+    function saveToHistory(data) {
+        const history = JSON.parse(localStorage.getItem('plant_diagnosis_history') || '[]');
+        const newRecord = {
+            ...data,
+            date: new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        };
+        history.unshift(newRecord); // Add to beginning
+        localStorage.setItem('plant_diagnosis_history', JSON.stringify(history.slice(0, 20))); // Keep last 20
+    }
+
+    function showHistory() {
+        const history = JSON.parse(localStorage.getItem('plant_diagnosis_history') || '[]');
+        historyOverlay.classList.remove('hidden');
+
+        if (history.length === 0) {
+            historyList.innerHTML = '<p style="text-align: center; color: var(--text-light); margin-top: 2rem;">저장된 진단 기록이 없습니다.</p>';
+            return;
+        }
+
+        historyList.innerHTML = history.map(item => `
+            <div class="history-item">
+                <div class="history-info">
+                    <h4>${item.name}</h4>
+                    <div class="history-date">${item.date}</div>
+                </div>
+                <div class="history-badge">${item.healthStatus}</div>
+            </div>
+        `).join('');
+    }
+
+    function resetApp() {
+        resultSection.classList.add('hidden');
+        uploadSection.classList.remove('hidden');
+        fileInput.value = ''; // Reset file input
+    }
+
+    // Expose resetApp to window so it can be called from inline onclick (though we should avoid inline JS)
+    window.resetApp = resetApp;
 
     function renderResult(data) {
         // Generate Health Dots
@@ -137,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>${data.message}</p>
                 </div>
 
-                <button class="btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center;" onclick="location.reload()">
+                <button class="btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center;" onclick="resetApp()">
                     <i class="fa-solid fa-camera"></i> 다른 식물 진단하기
                 </button>
             </div>

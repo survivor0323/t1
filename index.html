@@ -40,11 +40,26 @@
         <header>
             <div class="header-content">
                 <h2>안녕하세요,<br>식물 집사님 🌿</h2>
-                <div class="avatar">JD</div>
+                <button id="history-btn" class="icon-btn" aria-label="진단 기록"><i
+                        class="fa-solid fa-clock-rotate-left"></i></button>
             </div>
         </header>
 
         <main>
+            <!-- History Section (Overlay) -->
+            <div id="history-overlay" class="screen hidden" style="z-index: 50; background: var(--bg-color);">
+                <header>
+                    <div class="header-content">
+                        <h2>진단 기록 📅</h2>
+                        <button id="close-history-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </header>
+                <div id="history-list" style="padding: 1.5rem; padding-top: 0;">
+                    <!-- History items will be injected here -->
+                    <p style="text-align: center; color: var(--text-light); margin-top: 2rem;">저장된 진단 기록이 없습니다.</p>
+                </div>
+            </div>
+
             <!-- Upload Section -->
             <section id="upload-section" class="card glass">
                 <div class="upload-area" id="drop-area">
